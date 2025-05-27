@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信小程序原型 - xx证券</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFFDF5;
+        }
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: #FFFFFF;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative; /* For FAB positioning and adjustment */
+        }
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 60px;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto; /* This helps center it if window is wider */
+            background-color: #FFFFFF;
+            border-top: 1px solid #F0F0F0;
+            display: flex;
+            height: 60px;
+            z-index: 1000;
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #888888;
+            transition: color 0.3s;
+        }
+        .nav-item.active {
+            color: #E53E3E;
+        }
+        .nav-item i {
+            font-size: 1.25rem;
+            margin-bottom: 2px;
+        }
+        .nav-item span {
+            font-size: 0.75rem;
+        }
+
+        :root {
+            --color-light-gold: #FFECB3;
+            --color-white: #FFFFFF;
+            --color-red: #E53E3E;
+            --color-text-primary: #333333;
+            --color-text-secondary: #777777;
+            --color-border: #EEEEEE;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            text-align: center;
+        }
+        .btn-primary {
+            background-color: var(--color-red);
+            color: var(--color-white);
+            border: 1px solid var(--color-red);
+        }
+        .btn-primary:hover {
+            background-color: #C53030;
+        }
+        .btn-secondary {
+            background-color: var(--color-white);
+            color: var(--color-red);
+            border: 1px solid var(--color-red);
+        }
+        .btn-secondary:hover {
+            background-color: #FFF5F5;
+        }
+        .btn-gold {
+            background-color: var(--color-light-gold);
+            color: #854D0E;
+            border: 1px solid #F6E05E;
+        }
+        .btn-gold:hover {
+            background-color: #F6E05E;
+        }
+
+        .wx-header {
+            background-color: var(--color-white);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 500;
+            border-bottom: 1px solid var(--color-border);
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
+        .wx-header-title-group {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            justify-content: center;
+        }
+        .wx-header-title-group img {
+            height: 24px;
+            margin-right: 8px;
+        }
+        .wx-header-home-icon {
+            font-size: 1.2rem;
+            color: var(--color-text-primary);
+            cursor: pointer;
+        }
+         .wx-header-placeholder {
+            width: 1.2rem;
+        }
+
+
+        .clickable:hover {
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+            align-items: center;
+            justify-content: center;
+            z-index: 1050;
+            padding: 15px; /* Padding for smaller screens */
+        }
+        .modal-content {
+            background-color: var(--color-white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 420px; /* Slightly wider for policy text */
+            animation: modalFadeIn 0.3s ease-out;
+            position: relative; /* Needed for absolute positioning of close button in activity modal */
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-red);
+        }
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+        }
+        .modal-body {
+            font-size: 0.875rem; /* Slightly smaller for policy */
+            color: var(--color-text-primary);
+            line-height: 1.7;
+            margin-bottom: 20px;
+            max-height: 60vh; /* Scrollable if too long */
+            overflow-y: auto;
+        }
+        .modal-actions {
+            text-align: center; /* Center buttons for policy */
+            display: flex;
+            gap: 10px; /* Space between buttons */
+        }
+        .modal-actions .btn {
+            flex-grow: 1; /* Make buttons take equal width */
+        }
+
+        /* Activity Modal Specific Styles */
+        #activityModal .modal-content {
+            padding: 0;
+            background-color: transparent;
+            box-shadow: none;
+            max-width: 320px;
+        }
+        #activityModal .modal-body {
+            margin-bottom: 0;
+            padding:0;
+            position: relative; /* For close button positioning */
+            max-height: unset; /* Override general modal-body max-height */
+            overflow-y: visible; /* Override general modal-body overflow */
+        }
+        #activityModal img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+        }
+        #activityModalCloseBtn {
+            position: absolute;
+            top: 8px;  /* Adjust to be inside the image area, top left */
+            left: 8px; /* Adjust to be inside the image area, top left */
+            background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent background */
+            color: white;
+            border-radius: 4px; /* Slightly rounded square/rectangle */
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem; /* Smaller icon */
+            line-height: 1;
+            border: none; /* No border */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 10;
+        }
+        #activityModalCloseBtn:hover {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+
+        /* Banner Slider Styles */
+        .banner-slider {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .banner-slides {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        .banner-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+        }
+        .banner-slide img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .banner-pagination {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        .banner-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .banner-dot.active {
+            background-color: var(--color-white);
+        }
+
+        /* Floating Action Button (FAB) */
+        .fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background-color: var(--color-red);
+            color: var(--color-white);
+            width: auto;
+            padding: 10px 15px;
+            height: 50px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 999;
+            font-size: 0.9rem;
+            transition: transform 0.2s ease-out, right 0.3s ease-out;
+        }
+        .fab:hover {
+            transform: scale(1.05);
+        }
+        .fab i {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="wxHeader" class="wx-header">
+            <i class="fas fa-home wx-header-home-icon" onclick="goHome()"></i>
+            <div class="wx-header-title-group">
+                <img src="公司logo.jpg" alt="xx证券Logo">
+                <span>xx证券</span>
+            </div>
+            <div class="wx-header-placeholder"></div>
+        </div>
+
+        <div class="main-content">
+            <div id="homePage" class="page active-page">
+                <div id="homeTopBar" class="p-4 flex items-center justify-between" style="background: linear-gradient(to bottom, var(--color-light-gold), #FFF9E6);">
+                    </div>
+
+                <div class="p-4">
+                    <div id="homeBannerSlider" class="banner-slider">
+                        <div class="banner-slides">
+                            <div class="banner-slide"><img src="https://placehold.co/600x250/FFECB3/854D0E?text=首页横幅1" alt="首页横幅1" class="clickable" onclick="alert('跳转横幅1的活动页面')"></div>
+                            <div class="banner-slide"><img src="https://placehold.co/600x250/FDD835/4E342E?text=首页横幅2" alt="首页横幅2" class="clickable" onclick="alert('跳转横幅2的活动页面')"></div>
+                            <div class="banner-slide"><img src="https://placehold.co/600x250/FFF176/3E2723?text=首页横幅3" alt="首页横幅3" class="clickable" onclick="alert('跳转横幅3的活动页面')"></div>
+                        </div>
+                        <div class="banner-pagination"></div>
+                    </div>
+                </div>
+
+                <div class="p-4">
+                   </div>
+            </div>
+
+            <div id="myPage" class="page hidden" style="background-color: #F9FAFB;">
+                <div id="myTopArea" class="p-6 flex items-center justify-between" style="background: linear-gradient(to bottom, var(--color-light-gold), #FFF9E6);">
+                    </div>
+
+                <div class="p-4">
+                    <div id="serviceGrid" class="grid grid-cols-3 gap-4">
+                        </div>
+                </div>
+
+                <div class="p-4 text-center text-sm text-gray-500">
+                    如遇问题请拨打xx证券客服专线 <a href="tel:95328" class="text-red-600 font-medium">88888</a>
+                </div>
+
+                <div class="p-4">
+                     <div id="myPageBannerSlider" class="banner-slider">
+                        <div class="banner-slides">
+                            <div class="banner-slide"><img src="https://placehold.co/600x200/FFECB3/854D0E?text=我的横幅1" alt="我的横幅1" class="clickable" onclick="alert('跳转横幅1的活动页面')"></div>
+                            <div class="banner-slide"><img src="https://placehold.co/600x200/FDD835/4E342E?text=我的横幅2" alt="我的横幅2" class="clickable" onclick="alert('跳转横幅2的活动页面')"></div>
+                        </div>
+                        <div class="banner-pagination"></div>
+                    </div>
+                </div>
+            </div>
+
+            </div>
+
+        <nav class="bottom-nav">
+            <div class="nav-item active" data-page="homePage">
+                <i class="fas fa-home"></i>
+                <span>首页</span>
+            </div>
+            <div class="nav-item" data-page="myPage">
+                <i class="fas fa-user"></i>
+                <span>我的</span>
+            </div>
+        </nav>
+
+        <div class="fab" onclick="handleFabClick()">
+            <i class="fas fa-gift"></i> <span>登录绑定领红包</span>
+        </div>
+    </div>
+
+    <div id="privacyPolicyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">用户隐私保护政策</h3>
+                </div>
+            <div class="modal-body">
+                <p>尊敬的用户，感谢您选择xxxx小程序。为确保您的隐私权益得到充分保护，请在开始使用之前仔细阅读并理解《“xxxxxx”微信小程序用户隐私保护政策协议》。我们承诺仅在协议规定的范围内处理您的个人信息。如果您同意协议的内容，请点击“同意并继续”以开始享受我们的服务。</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="handlePrivacyDisagree()">不同意并退出</button>
+                <button class="btn btn-primary" onclick="handlePrivacyAgree()">同意并继续</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="activityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-body">
+                 <button id="activityModalCloseBtn" class="modal-close-btn" onclick="closeModal('activityModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+                <img src="https://placehold.co/300x400/FFD700/854D0E?text=活动插屏广告" alt="活动广告" class="clickable" onclick="handleActivityModalClick()">
+            </div>
+        </div>
+    </div>
+
+    <div id="growthValueModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">成长值系统说明</h3>
+                <button onclick="closeModal('growthValueModal')" class="modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>成长值是用户活跃度和贡献度的体现，未来将与更多推广活动和专属权益挂钩。详细机制敬请期待！</p>
+            </div>
+            <div class="modal-actions" style="text-align: right;">
+                <button class="btn btn-primary" onclick="closeModal('growthValueModal')">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+     <div id="loginRequiredModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">温馨提示</h3>
+                <button onclick="closeModal('loginRequiredModal')" class="modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="loginRequiredModalText">此功能需要登录并绑定资产账户后才能使用。是否立即登录？</p>
+            </div>
+            <div class="modal-actions" style="text-align: right;">
+                <button class="btn btn-secondary mr-2" onclick="closeModal('loginRequiredModal')">稍后</button>
+                <button id="modalLoginButton" class="btn btn-primary" onclick="handleLoginFromModal()">立即登录</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- 全局状态 ---
+        let isLoggedIn = false;
+        let currentPage = 'homePage';
+        const companyLogoUrl = '公司logo.jpg';
+        const companyName = "xx证券";
+        let currentServiceAction = null;
+        let activityModalShownThisSession = false;
+
+        // --- 模拟用户数据 ---
+        const guestData = {
+            loginPromptHome: "登录查看您的权益", // 修改了这里的文本
+            loginPromptMy: "登录享受专属服务"
+        };
+        const loggedInData = {
+            avatarUrl: "https://placehold.co/60x60/E53E3E/FFFFFF?text=头像",
+            nickname: "尊贵的用户",
+            growthValue: 1250,
+        };
+
+        // --- 模拟新闻数据 (已移除) ---
+
+        // --- 更新后的服务数据 ---
+        const services = [
+            // 上排
+            { name: "我的资金账号", icon: "fas fa-user-shield", action: () => simulateMiniProgramJump("绑定资金账户"), requiresLogin: true, description: "绑定账号获取更多咨询、交易信息实时推送" },
+            { name: "我的活动记录", icon: "fas fa-star", action: () => simulateMiniProgramJump("管理自选股"), requiresLogin: true, description: "绑定账户后获取自选股、自选基金行情"},
+            { name: "我要开户", icon: "fas fa-id-card", action: () => window.open('https://example.com/open-account-dgzq', '_blank'), requiresLogin: false },
+            // 下排
+            { name: "新股新债日历", icon: "fas fa-calendar-plus", action: () => showIPOInfo(), requiresLogin: false },
+            { name: "操作指南", icon: "fas fa-book-open", action: () => alert("跳转到操作指南页面"), requiresLogin: false },
+            { name: "查询网点地址", icon: "fas fa-map-marker-alt", action: () => alert("跳转到网点查询页面"), requiresLogin: false },
+        ];
+
+
+        // --- DOM Elements ---
+        const homeTopBar = document.getElementById('homeTopBar');
+        const myTopArea = document.getElementById('myTopArea');
+        const serviceGrid = document.getElementById('serviceGrid');
+        // const newsContentArea = document.getElementById('news-content-area'); // 已移除
+        const wxHeaderElement = document.getElementById('wxHeader');
+        const loginRequiredModalText = document.getElementById('loginRequiredModalText');
+        // const newsDetailContentArea = document.getElementById('news-detail-content-area'); // 已移除
+        // const newsDetailTabsContainer = document.getElementById('newsDetailTabs'); // 已移除
+        const modalLoginButton = document.getElementById('modalLoginButton');
+
+
+        // --- 渲染函数 ---
+        function renderHomePageTopBar() {
+            if (isLoggedIn) {
+                homeTopBar.innerHTML = `
+                    <div class="flex items-center">
+                        <img src="${loggedInData.avatarUrl}" alt="用户头像" class="w-10 h-10 rounded-full mr-3 border-2 border-white shadow">
+                        <div>
+                            <p class="font-semibold text-sm text-gray-800">${loggedInData.nickname}</p>
+                            <p class="text-xs text-yellow-700">成长值: ${loggedInData.growthValue}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                homeTopBar.innerHTML = `
+                    <p class="text-gray-700 font-medium">${guestData.loginPromptHome}</p>
+                    <button class="btn btn-primary" onclick="handleMainLoginClick()">登录</button>
+                `;
+            }
+        }
+
+        function renderMyPageTopArea() {
+            if (isLoggedIn) {
+                myTopArea.innerHTML = `
+                    <div class="flex items-center flex-grow">
+                        <img src="${loggedInData.avatarUrl}" alt="用户头像" class="w-12 h-12 rounded-full mr-4 border-2 border-white shadow-md">
+                        <div class="flex flex-col">
+                            <p class="font-semibold text-gray-800 text-lg">${loggedInData.nickname}</p>
+                            <div class="mt-1 flex items-center bg-yellow-100 border border-yellow-300 px-3 py-1 rounded-full shadow-sm w-fit">
+                                <i class="fas fa-star text-yellow-500 mr-2"></i>
+                                <span class="text-sm text-yellow-700 font-medium">成长值: ${loggedInData.growthValue}</span>
+                                <i class="fas fa-info-circle text-yellow-600 text-base ml-2 clickable hover:text-yellow-800" onclick="showGrowthValueModal()"></i>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+            } else {
+                myTopArea.innerHTML = `
+                    <p class="text-gray-700 font-medium">${guestData.loginPromptMy}</p>
+                    <button class="btn btn-primary" onclick="handleMainLoginClick()">登录</button>
+                `;
+            }
+        }
+
+        function renderServiceGrid() {
+            serviceGrid.innerHTML = '';
+            services.forEach(service => {
+                const serviceItem = document.createElement('div');
+                serviceItem.className = 'flex flex-col items-center justify-center p-3 bg-white rounded-lg shadow hover:shadow-md transition-shadow clickable';
+                serviceItem.innerHTML = `
+                    <i class="${service.icon} text-2xl mb-2" style="color: var(--color-red);"></i>
+                    <span class="text-xs text-center text-gray-700">${service.name}</span>
+                `;
+                serviceItem.onclick = () => {
+                    if (service.requiresLogin && !isLoggedIn) {
+                        let message = `“${service.name}”功能需要登录后才能使用。`;
+                        if (service.description) {
+                             message = `“${service.name}”功能（${service.description}）需要登录并绑定资产账户后才能使用。是否立即一键登录并绑定账户？`;
+                        } else {
+                             message = `“${service.name}”功能需要登录并绑定资产账户后才能使用。是否立即一键登录并绑定账户？`;
+                        }
+                        if(loginRequiredModalText) loginRequiredModalText.textContent = message;
+                        currentServiceAction = service.action;
+                        modalLoginButton.onclick = () => handleLoginFromModal(true);
+                        showModal('loginRequiredModal');
+                    } else {
+                        service.action();
+                    }
+                };
+                serviceGrid.appendChild(serviceItem);
+            });
+        }
+
+        // function renderNews(tabId = 'news-headlines', container = newsContentArea, data = newsData) { // 已移除
+        // }
+
+        // function renderDetailedNews(tabId = 'news-headlines-detail') { // 已移除
+        // }
+
+
+        // --- 交互函数 ---
+        function simulateMiniProgramJump(actionName) {
+            alert(`模拟跳转到其他小程序进行“${actionName}”操作...`);
+            setTimeout(() => {
+                isLoggedIn = true;
+                updateUI();
+                alert("一键登录并绑定资金账户成功！（模拟）");
+            }, 1000);
+        }
+
+        function handleMainLoginClick() {
+            simulateMiniProgramJump("一键登录/绑定资金账户");
+        }
+
+        function login() {
+            isLoggedIn = true;
+            updateUI();
+            alert("登录成功！（模拟）");
+        }
+
+        function handleLoginFromModal(isServiceAction = false) {
+            closeModal('loginRequiredModal');
+            if (isServiceAction && currentServiceAction) {
+                currentServiceAction();
+            } else {
+                simulateMiniProgramJump("一键登录/绑定资金账户");
+            }
+            currentServiceAction = null;
+        }
+
+
+        function updateUI() {
+            renderHomePageTopBar();
+            renderMyPageTopArea();
+            renderServiceGrid();
+        }
+
+        function goHome() {
+            switchPage('homePage');
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                 targetPage.classList.remove('hidden');
+            }
+            currentPage = pageId;
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.page === pageId);
+            });
+        }
+
+        function showIPOInfo() {
+            alert("新股新债日历 (模拟数据):\n\n今日新股：\n- ABC科技 (代码: 789012) - 申购中\n\n近期新债：\n- XYZ可转债 (代码: 123456) - 05月28日发行");
+        }
+
+        // --- Modal Functions ---
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function showGrowthValueModal() {
+            showModal('growthValueModal');
+        }
+
+        // --- Banner Slider Logic ---
+        function setupBannerSlider(sliderId) {
+            const slider = document.getElementById(sliderId);
+            if (!slider) return;
+            const slidesContainer = slider.querySelector('.banner-slides');
+            const slides = Array.from(slidesContainer.children);
+            const paginationContainer = slider.querySelector('.banner-pagination');
+            if (!slidesContainer || slides.length === 0 || !paginationContainer) return;
+
+            let currentIndex = 0;
+            let slideInterval;
+            paginationContainer.innerHTML = '';
+
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.classList.add('banner-dot');
+                if (index === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => {
+                    goToSlide(index);
+                    resetInterval();
+                });
+                paginationContainer.appendChild(dot);
+            });
+            const dots = Array.from(paginationContainer.children);
+
+            function goToSlide(index) {
+                slidesContainer.style.transform = `translateX(-${index * 100}%)`;
+                dots.forEach((d, i) => d.classList.toggle('active', i === index));
+                currentIndex = index;
+            }
+
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % slides.length;
+                goToSlide(currentIndex);
+            }
+
+            function resetInterval() {
+                clearInterval(slideInterval);
+                if (slides.length > 1) {
+                    slideInterval = setInterval(nextSlide, 3000);
+                }
+            }
+
+            if (slides.length > 1) {
+                resetInterval();
+            } else {
+                 goToSlide(0);
+            }
+        }
+
+        // --- FAB Position Adjustment ---
+        function adjustFabPosition() {
+            const appContainer = document.querySelector('.app-container');
+            const fab = document.querySelector('.fab');
+            if (!appContainer || !fab) return;
+
+            const appContainerRect = appContainer.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+
+            if (appContainerRect.width < windowWidth) {
+                const spaceRightOfContainer = windowWidth - appContainerRect.right;
+                fab.style.right = `${spaceRightOfContainer + 20}px`;
+            } else {
+                fab.style.right = '20px';
+            }
+        }
+
+
+        // --- FAB Logic ---
+        function handleFabClick() {
+            if (!isLoggedIn) {
+                if(loginRequiredModalText) loginRequiredModalText.textContent = `领红包需要您先登录并绑定资金账户。是否立即一键登录并绑定账户？`;
+                modalLoginButton.onclick = () => handleLoginFromModal(false);
+                showModal('loginRequiredModal');
+            } else {
+                alert("跳转到小程序绑定资金账户页面领红包...(模拟)");
+            }
+        }
+
+        // --- News Detail Page Logic (已移除相关函数) ---
+        // function handleViewMoreNews() { // 已移除
+        // }
+        // function showNewsDetailPage(initialTabId) { // 已移除
+        // }
+
+        // --- Privacy and Activity Modal Logic ---
+        function checkAndShowInitialModals() {
+            if (localStorage.getItem('privacyPolicyAgreed_dgzq') !== 'true') {
+                showModal('privacyPolicyModal');
+            } else {
+                // Privacy already agreed, do nothing extra here for now regarding activity modal
+                // It's shown only once immediately after agreement.
+            }
+        }
+
+        function handlePrivacyAgree() {
+            localStorage.setItem('privacyPolicyAgreed_dgzq', 'true');
+            closeModal('privacyPolicyModal');
+            // Show activity modal immediately after agreeing to privacy
+            if (!activityModalShownThisSession) { // Check if already shown in this "session"
+                showModal('activityModal');
+                activityModalShownThisSession = true;
+            }
+        }
+
+        function handlePrivacyDisagree() {
+            alert('您需要同意隐私政策才能继续使用。\n小程序功能将受限。');
+            // For a prototype, we might just leave the modal open or disable interactions.
+            // Here, we'll just show an alert. The modal will remain.
+        }
+
+        function handleActivityModalClick() {
+            alert('跳转到活动页面...(模拟)');
+            closeModal('activityModal');
+        }
+
+
+        // --- 事件监听 ---
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                switchPage(item.dataset.page);
+            });
+        });
+
+        // document.querySelectorAll('#homePage .news-tabs .tab-item').forEach(tab => { // 已移除
+        // });
+
+        // document.querySelectorAll('#newsDetailTabs .tab-item').forEach(tab => { // 已移除
+        // });
+
+
+        // --- 初始化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Base UI rendering happens first
+            updateUI();
+            // renderNews(); // 已移除
+            switchPage('homePage');
+            setupBannerSlider('homeBannerSlider');
+            setupBannerSlider('myPageBannerSlider');
+            // renderDetailedNews(); // 已移除
+            adjustFabPosition();
+
+            // Then check for initial modals (privacy, then activity if applicable)
+            checkAndShowInitialModals();
+        });
+
+        window.addEventListener('resize', adjustFabPosition);
+
+    </script>
+</body>
+</html>
